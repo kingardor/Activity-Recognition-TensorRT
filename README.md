@@ -1,6 +1,6 @@
 # Activity Recognition TensorRT
 
-Perform video classification using 3D ResNets trained on Kinects-400 dataset and accelerated with TensorRT
+Perform video classification using 3D ResNets trained on Kinetics-400 dataset and accelerated with TensorRT
 
 [![ActivityGIF](resources/act.gif)](https://youtu.be/D8h0ko8Bndo)
 
