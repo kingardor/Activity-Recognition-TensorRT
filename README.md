@@ -4,6 +4,8 @@ Perform video classification using 3D ResNets trained on Kinects-400 dataset and
 
 [![ActivityGIF](resources/act.gif)](https://youtu.be/D8h0ko8Bndo)
 
+P.S Click on the gif to watch the full-length video!
+
 ## Index
 
 - [Activity Recogntion TensorRT](#activity-recognition-tensorrt)
