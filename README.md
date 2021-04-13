@@ -8,7 +8,7 @@ P.S Click on the gif to watch the full-length video!
 
 ## Index
 
-- [Activity Recogntion TensorRT](#activity-recognition-tensorrt)
+- [Activity Recognition TensorRT](#activity-recognition-tensorrt)
 - [Index](#index)
 - [TensorRT Installation](#tensorrt-installation)
 - [Python Dependencies](#python-dependencies)
