@@ -1,6 +1,7 @@
 import os
 import sys
 from collections import deque
+import traceback
 import pycuda.driver as cuda
 import pycuda.autoinit
 import numpy as np
@@ -12,7 +13,7 @@ from opts import parse_arguments
 
 EXPLICIT_BATCH = 1 << (int)(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
 
-CLASSES = open('action_recognition_kinetics.txt').read().strip().split("\n")
+CLASSES = open('action_recognition_kinetics_moments.txt').read().strip().split("\n")
 
 DURATION = 16
 INPUT_SIZE = 112
@@ -38,21 +39,23 @@ class TensorRTInference:
 
         precision = 'fp32'
         if fp16:
-                precision = 'fp16'
+            precision = 'fp16'
 
         def build_engine():
 
             builder = trt.Builder(TRT_LOGGER)
+            config = builder.create_builder_config()
             network = builder.create_network(EXPLICIT_BATCH)
             parser = trt.OnnxParser(network, TRT_LOGGER)
+            runtime = trt.Runtime(TRT_LOGGER)
 
             # allow TensorRT to use up to 1GB of GPU memory for tactic selection
-            builder.max_workspace_size = workspace
+            config.max_workspace_size = workspace
             # we have only one image in batch
             builder.max_batch_size = batch_size
             # use FP16 mode if possible
-            if builder.platform_has_fast_fp16:
-                builder.fp16_mode = fp16
+            if precision == 'fp16' and builder.platform_has_fast_fp16:
+                config.set_flag(trt.BuilderFlag.FP16)
 
             # parse ONNX
             with open(onnx_file_path, 'rb') as model:
@@ -67,7 +70,9 @@ class TensorRTInference:
 
             # generate TensorRT engine optimized for the target platform
             print('[Engine] Building an engine')
-            engine = builder.build_cuda_engine(network)
+            plan = builder.build_serialized_network(network, config)
+            engine = runtime.deserialize_cuda_engine(plan)
+            # engine = builder.build_cuda_engine(network, config)
 
             print('[Engine] Completed creating Engine')
 
@@ -123,6 +128,7 @@ class TensorRTInference:
         # Return only the host outputs.
 
         outputs = [out.host for out in outputs]
+
         return CLASSES[np.argmax(outputs)]
 
     def __init__(self, onnx_file_path, engine_file_path,
@@ -157,6 +163,11 @@ if __name__ == '__main__':
     trt_inference = TensorRTInference(ONNX_FILE_PATH, ENGINE_FILE_PATH,
                           1<<30, 1, opt.fp16)
 
+    if not opt.save_output == '':
+        writer = cv2.VideoWriter(opt.save_output,
+                    cv2.VideoWriter_fourcc(*'MJPG'),
+                    60, (1920, 1080))
+
     source = cv2.VideoCapture(0 if opt.stream == 'webcam' else opt.stream)
 
     frames = deque(maxlen=DURATION)
@@ -170,14 +181,16 @@ if __name__ == '__main__':
         if not ret:
             break
 
+        frame = cv2.resize(frame, (1920, 1080))
         skip += 1
         if skip % opt.frameskip == 0:
             skip = 0
+
             frames.append(frame)
 
             if not len(frames) < DURATION:
-                blob = cv2.dnn.blobFromImages(frames, 1.0,
-                    (INPUT_SIZE, INPUT_SIZE), (114.7748, 107.7354, 99.4750),
+                blob = cv2.dnn.blobFromImages(frames, (1.0/255),
+                    (INPUT_SIZE, INPUT_SIZE), (110.79, 103.3, 96.26),
                     swapRB=True, crop=True)
                 blob = np.transpose(blob, (1, 0, 2, 3))
                 blob = np.expand_dims(blob, axis=0)
@@ -188,16 +201,24 @@ if __name__ == '__main__':
                 inferencetime = round(time.time() - start, 4)
                 print('Inference Time: {} ms'.format(inferencetime), end='\r')
 
-        cv2.rectangle(frame, (0, 0), (400, 80), (0, 0, 0), -1)
-        cv2.putText(frame, 'Inference Time: {} s'.format(inferencetime), (10, 25), cv2.FONT_HERSHEY_COMPLEX,
-            0.75, (255, 255, 255), 2)
-        cv2.putText(frame, 'Output: {}'.format(result), (10, 55), cv2.FONT_HERSHEY_COMPLEX,
-            0.75, (0, 255, 0), 2)
+        overlay = frame.copy()
+        display = frame.copy()
 
-        cv2.imshow('Output', frame)
+        cv2.rectangle(overlay, (560, 850), (1360, 1000), (0, 0, 0), -1)
+        cv2.putText(overlay, 'Inference Time: {} s'.format(inferencetime), (600, 900), cv2.FONT_HERSHEY_COMPLEX,
+            1.25, (255, 255, 255), 2)
+        cv2.putText(overlay, 'Output: {}'.format(result), (600, 950), cv2.FONT_HERSHEY_COMPLEX,
+            1.25, (0, 255, 0), 2)
 
+        cv2.addWeighted(overlay, 0.7, display, 1 - 0.7, 0, display)
+
+        cv2.imshow('Output', display)
+
+        if not opt.save_output == '':
+            writer.write(display)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
     source.release()
+    writer.release()
     cv2.destroyAllWindows()

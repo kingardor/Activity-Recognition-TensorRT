@@ -1,7 +1,9 @@
 appdirs==1.4.4
 Mako==1.1.4
-MarkupSafe==1.1.1
-numpy==1.20.2
-opencv-python==4.5.1.48
+MarkupSafe==2.0.1
+netron==5.0.2
+numpy==1.21.1
+opencv-python==4.5.3.56
 pycuda==2021.1
-pytools==2021.2.3
+pytools==2021.2.7
+tensorrt @ file:///home/astr1x/Downloads/TensorRT-8.0.1.6/python/tensorrt-8.0.1.6-cp39-none-linux_x86_64.whl

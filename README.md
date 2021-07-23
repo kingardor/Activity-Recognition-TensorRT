@@ -1,8 +1,8 @@
 # Activity Recognition TensorRT
 
-Perform video classification using 3D ResNets trained on Kinetics-400 dataset and accelerated with TensorRT
+Perform video classification using 3D ResNets trained on Kinetics-700 and Moments in Time dataset - accelerated with TensorRT 8.0
 
-[![ActivityGIF](resources/act.gif)](https://youtu.be/D8h0ko8Bndo)
+[![ActivityGIF](resources/act.gif)](https://youtu.be/snlZtGCyJMg)
 
 P.S Click on the gif to watch the full-length video!
 
@@ -17,9 +17,9 @@ P.S Click on the gif to watch the full-length video!
 - [Running the code](#running-the-code)
 - [Citations](#citations)
 
-## TensorRT Installation
+## TensorRT 8 Installation
 
-Assuming you have CUDA already installed, go ahead and download TensorRT from [here](https://developer.nvidia.com/nvidia-tensorrt-7x-download).
+Assuming you have CUDA already installed, go ahead and download TensorRT 8 from [here](https://developer.nvidia.com/tensorrt-getting-started).
 
 Follow instructions of installing the system binaries and python package for tensorrt [here](https://docs.nvidia.com/deeplearning/tensorrt/install-guide/index.html#installing-tar).
 
@@ -45,9 +45,9 @@ Next, clone the repository
 
 ```sh
 # Using HTTPS
-https://github.com/aj-ames/Activity-Recognition-TensorRT.git
+https://github.com/kn1ghtf1re/Activity-Recognition-TensorRT.git
 # Using SSH
-git@github.com:aj-ames/Activity-Recognition-TensorRT.git
+git@github.com:kn1ghtf1re/Activity-Recognition-TensorRT.git
 ```
 
 ## Download Pretrained Models
@@ -60,9 +60,9 @@ The code supports a number of command line arguments. Use help to see all suppor
 
 ```sh
 ➜ python3 action_recognition_tensorrt.py --help
-usage: action_recognition_tensorrt.py [-h] [--stream STREAM] [--model MODEL] [--fp16] [--frameskip FRAMESKIP]
+usage: action_recognition_tensorrt.py [-h] [--stream STREAM] [--model MODEL] [--fp16] [--frameskip FRAMESKIP] [--save_output SAVE_OUTPUT]
 
-Object Detection using YOLOv4 and OpenCV4
+Action Recognition using TensorRT 8
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -71,17 +71,18 @@ optional arguments:
   --fp16                To enable fp16 precision
   --frameskip FRAMESKIP
                         Number of frames to skip
-
+  --save_output SAVE_OUTPUT
+                        Save output as video
 ```
 
 Run the script this way:
 
 ```sh
 # Video
-python3 action_recognition_tensorrt.py --stream /path/to/video --model resnext-101-kinetics.onnx --fp16 --frameskip 3
+python3 action_recognition_tensorrt.py --stream /path/to/video --model resnet-18-kinetics-moments.onnx --fp16 --frameskip 2
 
 # Webcam
-python3 action_recognition_tensorrt.py --stream webcam --model resnext-101-kinetics.onnx --fp16 --frameskip 3
+python3 action_recognition_tensorrt.py --stream webcam --model resnet-18-kinetics-moments.onnx --fp16 --frameskip 2
 ```
 
 ## Citations
